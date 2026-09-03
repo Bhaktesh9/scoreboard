@@ -1,0 +1,1398 @@
+@import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,600&display=swap');
+
+/* =========================================
+   TOKENS
+========================================= */
+:root{
+  --void:      #05070A;
+  --panel:     #0E141B;
+  --pitch:     #1F6B4A;
+  --pitch-dim: #17422D;
+  --gold:      #F0B429;
+  --wicket:    #E5484D;
+  --ink:       #F4F1EA;
+  --ink-dim:   #8B93A1;
+  --hair:      rgba(244,241,234,0.09);
+
+  --fs-micro: clamp(11px, 1.1vh, 15px);
+  --fs-small: clamp(13px, 1.5vh, 18px);
+  --fs-body:  clamp(16px, 2vh, 22px);
+  --fs-team:  clamp(20px, 3vh, 30px);
+  --fs-hero:  clamp(52px, 12vh, 116px);
+}
+
+*{ box-sizing: border-box; }
+
+html, body{
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--void);
+  font-family: 'Barlow', Arial, sans-serif;
+  color: var(--ink);
+}
+
+/* =========================================
+   SCREEN
+   Flex column so the ONE growing section
+   (.scoreboard-main) can absorb whatever
+   space is left — no scrolling, ever —
+   regardless of how many optional rows
+   (chase-info / match-result) render.
+========================================= */
+.scoreboard-screen{
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% -10%, rgba(31,107,74,0.35), transparent 55%),
+    var(--void);
+}
+
+/* =========================================
+   HEADER — tournament / title / status
+   are three separate sibling divs in the
+   markup, so they're styled as three thin
+   stacked bars rather than assumed to be
+   wrapped together.
+========================================= */
+.scoreboard-tournament{
+  flex: 0 0 auto;
+  padding: clamp(4px,0.8vh,8px) clamp(16px,2.4vw,40px) 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+}
+
+.scoreboard-title{
+  flex: 0 0 auto;
+  padding: 0 clamp(16px,2.4vw,40px);
+  font-size: clamp(16px, 2.2vh, 24px);
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.scoreboard-status{
+  flex: 0 0 auto;
+  padding: 0 clamp(16px,2.4vw,40px) clamp(6px,1vh,10px);
+  font-size: var(--fs-small);
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scoreboard-error{
+  flex: 0 0 auto;
+  margin: 0 clamp(16px,2.4vw,40px) clamp(4px,0.8vh,8px);
+  padding: 4px 10px;
+  background: rgba(229,72,77,0.12);
+  border: 1px solid rgba(229,72,77,0.4);
+  border-radius: 3px;
+  color: var(--wicket);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+}
+
+.scoreboard-status::before{
+  content: "";
+  display: inline-block;
+  width: 8px; height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: var(--wicket);
+  animation: pulse 1.8s ease-out infinite;
+}
+@media (prefers-reduced-motion: reduce){
+  .scoreboard-status::before{ animation: none; }
+}
+@keyframes pulse{
+  0%   { box-shadow: 0 0 0 0 rgba(229,72,77,0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(229,72,77,0); }
+  100% { box-shadow: 0 0 0 0 rgba(229,72,77,0); }
+}
+
+/* =========================================
+   TEAM STRIP
+   innings.map() renders 1 or 2 team blocks,
+   so this uses auto-fit rather than a fixed
+   column count.
+========================================= */
+.scoreboard-teams{
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+}
+.scoreboard-teams:empty{ display: none; }
+
+.scoreboard-team{
+  background: var(--panel);
+  padding: clamp(10px,1.6vh,18px) clamp(16px,2.4vw,40px);
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  border-left: 3px solid transparent;
+}
+
+/* Highlights whichever team is listed last — in practice the
+   currently-batting side. See note below on making this exact. */
+.scoreboard-team:last-child{
+  border-left-color: var(--gold);
+  background: linear-gradient(90deg, rgba(240,180,41,0.06), transparent 60%);
+}
+
+.scoreboard-team h2{
+  margin: 0;
+  flex: 1;
+  font-family: 'Teko', 'Arial Narrow', sans-serif;
+  font-weight: 500;
+  font-size: var(--fs-team);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.scoreboard-score{
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(22px, 3.6vh, 40px);
+}
+.scoreboard-team:last-child .scoreboard-score{ color: var(--gold); }
+
+.scoreboard-overs{
+  min-width: 64px;
+  text-align: right;
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  align-self: center;
+}
+
+/* =========================================
+   MAIN — the only flexible row.
+   min-height:0 is what lets a flex child
+   shrink below content size instead of
+   forcing the page to scroll.
+========================================= */
+.scoreboard-main{
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: auto minmax(0,1fr) auto auto;
+  grid-template-areas:
+    "heading   heading"
+    "batsmen   bowler"
+    "extras    extras"
+    "breakdown breakdown";
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Loading / not-found early-return screens (whole page) */
+.scoreboard-loading{
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Teko', sans-serif;
+  font-size: clamp(28px,5vh,44px);
+  letter-spacing: 0.05em;
+  color: var(--ink-dim);
+}
+
+/* Match-not-started, nested INSIDE .scoreboard-main */
+.match-not-started{
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+}
+.match-not-started h1{
+  margin: 0;
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: clamp(32px,6vh,56px);
+}
+.match-not-started p{
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: var(--fs-body);
+}
+
+/* ---- innings hero ---- */
+.innings-heading{
+  grid-area: heading;
+  padding: clamp(10px,1.6vh,18px) clamp(16px,2.4vw,40px) clamp(4px,0.8vh,8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px,4vw,56px);
+}
+.innings-heading-main{ text-align: center; }
+.innings-heading h1{
+  margin: 0;
+  font-size: var(--fs-small);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.large-score{
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-hero);
+  line-height: 0.95;
+  color: var(--ink);
+}
+.large-overs{
+  font-size: var(--fs-body);
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chase pill — sits beside the hero score rather than in a
+   separate strip, so the "need X off Y" figure is read in the
+   same glance as the score that drives it. */
+.chase-pill{
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: clamp(8px,1.2vh,14px) clamp(16px,2.2vw,28px);
+  border: 1.5px solid var(--gold);
+  border-radius: 999px;
+  background: rgba(240,180,41,0.08);
+}
+.chase-pill .pill-runs{
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: clamp(30px,5.5vh,52px);
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.chase-pill .pill-label{
+  font-size: var(--fs-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+
+/* ---- batsmen / bowler ---- */
+.current-batsmen{
+  grid-area: batsmen;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(6px,1vh,12px) clamp(16px,2.4vw,40px) 0 clamp(16px,2.4vw,40px);
+}
+.current-bowler{
+  grid-area: bowler;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(6px,1vh,12px) clamp(16px,2.4vw,40px) 0 0;
+}
+
+.current-batsmen h2,
+.current-bowler h2{
+  margin: 0 0 6px;
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.score-table-header{
+  display: grid;
+  grid-template-columns: 1fr 56px 56px 64px;
+  align-items: center;
+  color: var(--ink-dim);
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--hair);
+}
+.score-table-header span:not(:first-child){ text-align: right; }
+
+.batsman-row,
+.bowler-row{
+  display: grid;
+  grid-template-columns: 1fr 56px 56px 64px;
+  align-items: center;
+  padding: clamp(5px,0.9vh,10px) 4px;
+  border-bottom: 1px solid var(--hair);
+  font-size: var(--fs-body);
+  font-variant-numeric: tabular-nums;
+}
+.batsman-row span:not(:first-child),
+.bowler-row span:not(:first-child){ text-align: right; }
+
+.batsman-name{ font-weight: 500; }
+.batsman-name strong{
+  color: var(--gold);
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.empty-score-row{
+  padding: 10px 4px;
+  color: var(--ink-dim);
+  font-style: italic;
+  font-size: var(--fs-small);
+}
+
+/* ---- extras ---- */
+.extras{
+  grid-area: extras;
+  margin: 0 clamp(16px,2.4vw,40px);
+  padding: clamp(5px,0.8vh,10px) 0;
+  border-top: 1px solid var(--hair);
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-small);
+  color: var(--ink-dim);
+}
+.extras strong{ color: var(--ink); font-weight: 700; letter-spacing: 0.06em; }
+
+.extras-breakdown{
+  grid-area: breakdown;
+  margin: 0 clamp(16px,2.4vw,40px) clamp(6px,1vh,10px);
+  display: flex;
+  gap: 20px;
+  color: var(--ink-dim);
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================
+   MATCH RESULT
+========================================= */
+.match-result{
+  flex: 0 0 auto;
+  background: linear-gradient(90deg, rgba(240,180,41,0.10), transparent 70%);
+  border-top: 1px solid var(--gold);
+  padding: clamp(10px,1.6vh,18px) clamp(16px,2.4vw,40px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.result-trophy{ font-size: clamp(20px,3vh,30px); line-height: 1; }
+.result-label{
+  font-size: var(--fs-micro);
+  color: var(--ink-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.result-text{
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: clamp(20px,3.4vh,32px);
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+.scoreboard-footer{
+  flex: 0 0 auto;
+  background: var(--void);
+  border-top: 1px solid var(--hair);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(16px,3vw,48px);
+  padding: clamp(6px,1.2vh,12px) 20px;
+  font-size: var(--fs-micro);
+  color: var(--ink-dim);
+  flex-wrap: wrap;
+}
+
+.last-updated{
+  position: fixed;
+  right: 14px;
+  bottom: clamp(44px,7vh,58px);
+  background: rgba(5,7,10,0.85);
+  border: 1px solid var(--hair);
+  color: var(--ink-dim);
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: var(--fs-micro);
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================
+   NARROW / PORTRAIT LED PANELS
+========================================= */
+@media (max-aspect-ratio: 4/5){
+  .scoreboard-main{ grid-template-columns: 1fr; grid-template-areas:
+    "heading"
+    "batsmen"
+    "bowler"
+    "extras"
+    "breakdown"; }
+  .scoreboard-teams{ grid-template-columns: 1fr; }
+  .innings-heading{ flex-direction: column; gap: 10px; }
+}
+
+/* =========================================================
+   MATCHES PAGE
+   ========================================================= */
+
+.matches-page {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(31, 107, 74, 0.16),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 10% 80%,
+      rgba(240, 180, 41, 0.05),
+      transparent 25%
+    ),
+    #05070a;
+  color: #f4f1ea;
+  font-family: "Barlow", sans-serif;
+}
+
+.matches-background-glow {
+  position: fixed;
+  width: 500px;
+  height: 500px;
+  top: -300px;
+  right: -200px;
+  border-radius: 50%;
+  background: rgba(31, 107, 74, 0.08);
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.matches-header {
+  position: relative;
+  z-index: 2;
+
+  min-height: 92px;
+  padding: 0 7%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(244, 241, 234, 0.07);
+
+  background: rgba(5, 7, 10, 0.88);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.brand-mark {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+
+  border: 1px solid rgba(240, 180, 41, 0.45);
+  border-radius: 10px;
+
+  background: linear-gradient(
+    145deg,
+    rgba(240, 180, 41, 0.16),
+    rgba(31, 107, 74, 0.12)
+  );
+}
+
+.brand-mark span {
+  display: block;
+  width: 4px;
+  border-radius: 2px;
+  background: #f0b429;
+}
+
+.brand-mark span:nth-child(1) {
+  height: 13px;
+}
+
+.brand-mark span:nth-child(2) {
+  height: 23px;
+}
+
+.brand-mark span:nth-child(3) {
+  height: 17px;
+}
+
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-label {
+  color: #f0b429;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+}
+
+.brand-copy h1 {
+  margin: 1px 0 0;
+
+  font-family: "Teko", sans-serif;
+  font-size: 34px;
+  line-height: 0.9;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+
+/* =========================================================
+   REFRESH
+   ========================================================= */
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 16px;
+
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  border-radius: 8px;
+
+  background: rgba(255, 255, 255, 0.035);
+  color: #f4f1ea;
+
+  font-family: "Barlow", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.refresh-button:hover {
+  background: rgba(240, 180, 41, 0.08);
+  border-color: rgba(240, 180, 41, 0.35);
+  transform: translateY(-1px);
+}
+
+.refresh-icon {
+  font-size: 19px;
+  line-height: 1;
+  color: #f0b429;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.matches-container {
+  position: relative;
+  z-index: 1;
+
+  width: min(1180px, 86%);
+  margin: 0 auto;
+
+  padding: 46px 0 70px;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.matches-hero {
+  min-height: 190px;
+  margin-bottom: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 34px 40px;
+
+  position: relative;
+  overflow: hidden;
+
+  border: 1px solid rgba(244, 241, 234, 0.08);
+  border-radius: 16px;
+
+  background:
+    linear-gradient(
+      110deg,
+      rgba(31, 107, 74, 0.23),
+      rgba(14, 20, 27, 0.96) 55%
+    );
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+.matches-hero::after {
+  content: "";
+  position: absolute;
+
+  width: 260px;
+  height: 260px;
+
+  right: -90px;
+  top: -120px;
+
+  border-radius: 50%;
+
+  border: 1px solid rgba(240, 180, 41, 0.1);
+  box-shadow:
+    0 0 0 35px rgba(240, 180, 41, 0.025),
+    0 0 0 70px rgba(240, 180, 41, 0.015);
+
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.section-label {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #f0b429;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.hero-content h2 {
+  margin: 0;
+
+  font-family: "Teko", sans-serif;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 0.95;
+  font-weight: 600;
+
+  text-transform: uppercase;
+  letter-spacing: 0.015em;
+}
+
+.hero-content p {
+  margin: 12px 0 0;
+
+  color: #8b93a1;
+  font-size: 14px;
+}
+
+.hero-stat {
+  position: relative;
+  z-index: 1;
+
+  min-width: 130px;
+
+  padding-left: 32px;
+
+  border-left: 1px solid rgba(244, 241, 234, 0.1);
+
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat strong {
+  font-family: "Teko", sans-serif;
+  font-size: 58px;
+  line-height: 0.8;
+  font-weight: 600;
+  color: #f0b429;
+}
+
+.hero-stat span {
+  margin-top: 8px;
+
+  color: #8b93a1;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+
+/* =========================================================
+   SECTIONS
+   ========================================================= */
+
+.matches-section {
+  margin-bottom: 42px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 15px;
+  padding-bottom: 11px;
+
+  border-bottom: 1px solid rgba(244, 241, 234, 0.07);
+}
+
+.section-heading-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-heading h2 {
+  margin: 0;
+
+  font-family: "Teko", sans-serif;
+  font-size: 25px;
+  line-height: 1;
+
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.section-count {
+  min-width: 27px;
+  height: 27px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 6px;
+
+  background: rgba(244, 241, 234, 0.06);
+
+  color: #8b93a1;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.section-live-dot {
+  width: 8px;
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #e5484d;
+
+  box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.1);
+
+  animation: livePulse 1.5s infinite;
+}
+
+@keyframes livePulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+
+/* =========================================================
+   MATCH LIST
+   ========================================================= */
+
+.matches-list {
+  display: grid;
+  gap: 12px;
+}
+
+
+/* =========================================================
+   MATCH CARD
+   ========================================================= */
+
+.match-card {
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(244, 241, 234, 0.08);
+  border-radius: 12px;
+
+  background: #0e141b;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background 0.22s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-3px);
+
+  border-color: rgba(240, 180, 41, 0.25);
+
+  background: #111922;
+
+  box-shadow:
+    0 16px 35px rgba(0, 0, 0, 0.25);
+}
+
+.match-card-live {
+  border-color: rgba(229, 72, 77, 0.2);
+}
+
+.match-card-live::before {
+  content: "";
+
+  position: absolute;
+
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 3px;
+
+  background: #e5484d;
+}
+
+
+/* =========================================================
+   CARD HEADER
+   ========================================================= */
+
+.match-card-header {
+  height: 43px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(244, 241, 234, 0.055);
+
+  background: rgba(255, 255, 255, 0.018);
+}
+
+.match-meta {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.match-format-badge {
+  padding: 4px 7px;
+
+  border-radius: 4px;
+
+  background: rgba(240, 180, 41, 0.1);
+  color: #f0b429;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.match-date {
+  color: #69717e;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.match-status {
+  color: #8b93a1;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.match-status-live {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #e5484d;
+}
+
+.status-live-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #e5484d;
+
+  box-shadow: 0 0 8px rgba(229, 72, 77, 0.65);
+}
+
+
+/* =========================================================
+   CARD CONTENT
+   ========================================================= */
+
+.match-card-content {
+  min-height: 104px;
+
+  padding: 22px 28px;
+
+  display: grid;
+  grid-template-columns: 1fr 70px 1fr;
+  align-items: center;
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.match-team-left {
+  justify-content: flex-start;
+}
+
+.match-team-right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.team-name {
+  color: #f4f1ea;
+
+  font-family: "Teko", sans-serif;
+  font-size: 29px;
+  line-height: 1;
+
+  font-weight: 500;
+  letter-spacing: 0.015em;
+}
+
+.team-score {
+  color: #f0b429;
+
+  font-family: "Teko", sans-serif;
+  font-size: 27px;
+  line-height: 1;
+
+  font-weight: 600;
+}
+
+.match-vs {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.match-vs span {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(244, 241, 234, 0.1);
+  border-radius: 50%;
+
+  color: #69717e;
+
+  font-family: "Teko", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+
+/* =========================================================
+   CARD FOOTER
+   ========================================================= */
+
+.match-card-footer {
+  min-height: 47px;
+
+  padding: 0 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-top: 1px solid rgba(244, 241, 234, 0.055);
+}
+
+.match-time {
+  color: #69717e;
+
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.view-match-button {
+  border: 0;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: transparent;
+  color: #f0b429;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+
+  cursor: pointer;
+
+  transition: gap 0.2s ease;
+}
+
+.view-match-button:hover {
+  gap: 13px;
+}
+
+.view-match-button span {
+  font-size: 17px;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.no-matches {
+  margin-top: 20px;
+  padding: 70px 30px;
+
+  text-align: center;
+
+  border: 1px dashed rgba(244, 241, 234, 0.1);
+  border-radius: 14px;
+
+  background: rgba(14, 20, 27, 0.65);
+}
+
+.no-matches-icon {
+  margin-bottom: 12px;
+
+  font-size: 40px;
+}
+
+.no-matches > span {
+  color: #f0b429;
+
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.no-matches h2 {
+  margin: 8px 0;
+
+  font-family: "Teko", sans-serif;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.no-matches p {
+  margin: 0;
+
+  color: #8b93a1;
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.matches-loading {
+  min-height: 70vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 38px;
+  height: 38px;
+
+  margin-bottom: 18px;
+
+  border: 2px solid rgba(244, 241, 234, 0.08);
+  border-top-color: #f0b429;
+
+  border-radius: 50%;
+
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-title {
+  font-family: "Teko", sans-serif;
+  font-size: 25px;
+  letter-spacing: 0.08em;
+}
+
+.matches-loading p {
+  margin-top: 5px;
+
+  color: #69717e;
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.matches-error {
+  min-height: 70vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+}
+
+.error-icon {
+  width: 54px;
+  height: 54px;
+
+  margin-bottom: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(229, 72, 77, 0.25);
+  border-radius: 50%;
+
+  background: rgba(229, 72, 77, 0.08);
+
+  color: #e5484d;
+
+  font-family: "Teko", sans-serif;
+  font-size: 30px;
+}
+
+.error-label {
+  color: #e5484d;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+}
+
+.matches-error h2 {
+  margin: 8px 0 5px;
+
+  font-family: "Teko", sans-serif;
+  font-size: 35px;
+  line-height: 1;
+}
+
+.matches-error p {
+  margin: 0 0 20px;
+
+  color: #69717e;
+  font-size: 13px;
+}
+
+.retry-button {
+  padding: 11px 20px;
+
+  border: 1px solid rgba(240, 180, 41, 0.3);
+  border-radius: 7px;
+
+  background: rgba(240, 180, 41, 0.08);
+  color: #f0b429;
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.retry-button:hover {
+  background: rgba(240, 180, 41, 0.15);
+  border-color: rgba(240, 180, 41, 0.5);
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.matches-footer {
+  padding: 22px 7%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+
+  border-top: 1px solid rgba(244, 241, 234, 0.06);
+
+  color: #3f4650;
+
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.footer-divider {
+  color: #f0b429;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .matches-header {
+    min-height: 76px;
+    padding: 0 20px;
+  }
+
+  .matches-container {
+    width: calc(100% - 30px);
+    padding-top: 25px;
+  }
+
+  .matches-hero {
+    min-height: auto;
+
+    padding: 25px 22px;
+
+    align-items: flex-start;
+  }
+
+  .hero-content h2 {
+    font-size: 38px;
+  }
+
+  .hero-content p {
+    max-width: 230px;
+  }
+
+  .hero-stat {
+    min-width: auto;
+    padding-left: 18px;
+  }
+
+  .hero-stat strong {
+    font-size: 43px;
+  }
+
+  .hero-stat span {
+    font-size: 8px;
+  }
+
+  .match-card-content {
+    grid-template-columns: 1fr 45px 1fr;
+    padding: 20px 16px;
+  }
+
+  .match-team {
+    gap: 8px;
+  }
+
+  .team-name {
+    font-size: 23px;
+  }
+
+  .team-score {
+    font-size: 22px;
+  }
+
+  .match-vs span {
+    width: 31px;
+    height: 31px;
+    font-size: 12px;
+  }
+
+  .match-card-header {
+    padding: 0 14px;
+  }
+
+  .match-card-footer {
+    padding: 0 14px;
+  }
+
+  .brand-copy h1 {
+    font-size: 29px;
+  }
+
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .refresh-button span:last-child {
+    display: none;
+  }
+}
