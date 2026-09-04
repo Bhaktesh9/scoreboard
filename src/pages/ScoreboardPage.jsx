@@ -11,7 +11,7 @@ import {
 } from "../utils/scoreUtils";
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://scoreboard-uuvq.onrender.com/";
+  import.meta.env.VITE_API_BASE_URL || "https://scoreboard-uuvq.onrender.com";
 
 function ScoreboardPage() {
   const { matchId } = useParams();
