@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://scoreboard-uuvq.onrender.com";
+
 function MatchesPage() {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,15 +14,14 @@ function MatchesPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(
-        "http://localhost:5000/api/matches"
-      );
+      const response = await fetch(`${API_BASE}/api/matches`);
 
       if (!response.ok) {
         throw new Error("Failed to load matches");
       }
 
       const result = await response.json();
+
       setMatches(result.data || []);
     } catch (err) {
       console.error(err);
@@ -34,6 +37,7 @@ function MatchesPage() {
 
   const liveMatches = matches.filter((match) => {
     const status = match.matchStatus?.toLowerCase();
+
     return status === "in progress" || status === "live";
   });
 
@@ -100,6 +104,7 @@ function MatchesPage() {
             }`}
           >
             {isLive && <span className="status-live-dot"></span>}
+
             {getStatusLabel(match)}
           </div>
         </div>
@@ -187,8 +192,14 @@ function MatchesPage() {
 
         <div className="matches-loading">
           <div className="loading-spinner"></div>
-          <div className="loading-title">LOADING MATCHES</div>
-          <p>Fetching the latest cricket fixtures...</p>
+
+          <div className="loading-title">
+            LOADING MATCHES
+          </div>
+
+          <p>
+            Fetching the latest cricket fixtures...
+          </p>
         </div>
       </div>
     );
@@ -202,7 +213,9 @@ function MatchesPage() {
         <div className="matches-error">
           <div className="error-icon">!</div>
 
-          <span className="error-label">CONNECTION ERROR</span>
+          <span className="error-label">
+            CONNECTION ERROR
+          </span>
 
           <h2>Unable to load matches</h2>
 
@@ -307,7 +320,9 @@ function MatchesPage() {
 
       <footer className="matches-footer">
         <span>CRICKET LIVE</span>
+
         <span className="footer-divider">•</span>
+
         <span>LIVE MATCH CENTRE</span>
       </footer>
     </div>
@@ -315,4 +330,3 @@ function MatchesPage() {
 }
 
 export default MatchesPage;
-
