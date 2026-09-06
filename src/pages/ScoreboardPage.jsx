@@ -222,10 +222,10 @@ function ScoreboardPage() {
       );
 
       // Current matches are 6 overs
-      const TOTAL_OVERS = 6;
+      const TOTAL_OVERS = 5;
 
       const TOTAL_MATCH_BALLS =
-        TOTAL_OVERS * 6;
+        TOTAL_OVERS * 5;
 
       const ballsBowled =
         secondScore.balls ?? 0;
@@ -256,7 +256,7 @@ function ScoreboardPage() {
       }
 
       // ========================================
-      // 6 OVERS COMPLETED OR ALL WICKETS LOST
+      // 5 OVERS COMPLETED OR ALL WICKETS LOST
       // ========================================
 
       else if (
@@ -331,9 +331,6 @@ function ScoreboardPage() {
 
       {/* =================================
           MAIN LIVE SCORECARD
-
-          The old top two-team score
-          section has been removed.
       ================================= */}
 
       <div className="scoreboard-main">
@@ -341,7 +338,9 @@ function ScoreboardPage() {
         {currentInnings ? (
           <>
             {/* ================================
-                CURRENT INNINGS
+                CURRENT INNINGS — score + overs
+                shown inline, overs bigger than
+                before so it reads at a glance.
             ================================= */}
 
             <div className="innings-heading">
@@ -352,36 +351,20 @@ function ScoreboardPage() {
                   {currentInnings.battingTeamName}
                 </h1>
 
-                <div className="large-score">
-                  {currentScore.runs}/
-                  {currentScore.wickets}
-                </div>
+                <div className="score-overs-row">
 
-                <div className="large-overs">
-                  {currentScore.overs} overs
+                  <div className="large-score">
+                    {currentScore.runs}/
+                    {currentScore.wickets}
+                  </div>
+
+                  <div className="large-overs">
+                    {currentScore.overs} ov
+                  </div>
+
                 </div>
 
               </div>
-
-              {/* ================================
-                  CHASE PILL
-              ================================= */}
-
-              {chaseInfo && (
-                <div className="chase-pill">
-
-                  <span className="pill-runs">
-                    {chaseInfo.runsNeeded}
-                  </span>
-
-                  <span className="pill-label">
-                    off{" "}
-                    {chaseInfo.ballsRemaining}{" "}
-                    balls
-                  </span>
-
-                </div>
-              )}
 
             </div>
 
@@ -482,6 +465,27 @@ function ScoreboardPage() {
               )}
 
             </div>
+
+            {/* ================================
+                CHASE BANNER — full width,
+                placed below batsmen/bowler
+            ================================= */}
+
+            {chaseInfo && (
+              <div className="chase-banner">
+
+                <span className="chase-banner-runs">
+                  {chaseInfo.runsNeeded}
+                </span>
+
+                <span className="chase-banner-label">
+                  RUNS NEEDED OFF{" "}
+                  {chaseInfo.ballsRemaining}{" "}
+                  BALLS
+                </span>
+
+              </div>
+            )}
 
             {/* ================================
                 EXTRAS

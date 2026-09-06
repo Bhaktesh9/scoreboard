@@ -38,7 +38,7 @@ html, body{
    (.scoreboard-main) can absorb whatever
    space is left — no scrolling, ever —
    regardless of how many optional rows
-   (chase-info / match-result) render.
+   (chase-banner / match-result) render.
 ========================================= */
 .scoreboard-screen{
   height: 100dvh;
@@ -117,18 +117,14 @@ html, body{
 }
 
 /* =========================================
-   TOP TEAM SCORE STRIP REMOVED
-
-   The old .scoreboard-teams section is intentionally
-   removed from ScoreboardPage.jsx. The main innings
-   hero below is now the only large score display.
-========================================= */
-
-/* =========================================
    MAIN — the only flexible row.
    min-height:0 is what lets a flex child
    shrink below content size instead of
    forcing the page to scroll.
+
+   Added a "chase" row so the runs-needed
+   banner gets its own full-width strip
+   below batsmen/bowler.
 ========================================= */
 .scoreboard-main{
   flex: 1 1 auto;
@@ -136,10 +132,11 @@ html, body{
   overflow: hidden;
   display: grid;
   grid-template-columns: 1.4fr 1fr;
-  grid-template-rows: auto minmax(0,1fr) auto auto;
+  grid-template-rows: auto minmax(0,1fr) auto auto auto;
   grid-template-areas:
     "heading   heading"
     "batsmen   bowler"
+    "chase     chase"
     "extras    extras"
     "breakdown breakdown";
   max-width: 1600px;
@@ -189,7 +186,6 @@ html, body{
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(20px,4vw,56px);
 }
 .innings-heading-main{ text-align: center; }
 .innings-heading h1{
@@ -200,6 +196,18 @@ html, body{
   text-transform: uppercase;
   color: var(--ink-dim);
 }
+
+/* Score + overs sit inline, in the same
+   glance — overs sized up considerably
+   from the old stacked layout. */
+.score-overs-row{
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: clamp(14px, 2.4vw, 26px);
+  flex-wrap: wrap;
+}
+
 .large-score{
   font-family: 'Teko', sans-serif;
   font-weight: 600;
@@ -208,42 +216,14 @@ html, body{
   line-height: 0.88;
   color: var(--ink);
 }
-.large-overs{
-  font-size: clamp(24px, 3.2vh, 38px);
-  font-weight: 600;
-  color: var(--ink-dim);
-  font-variant-numeric: tabular-nums;
-  margin-top: 4px;
-}
 
-/* Chase pill — sits beside the hero score rather than in a
-   separate strip, so the "need X off Y" figure is read in the
-   same glance as the score that drives it. */
-.chase-pill{
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: clamp(8px,1.2vh,14px) clamp(16px,2.2vw,28px);
-  border: 1.5px solid var(--gold);
-  border-radius: 999px;
-  background: rgba(240,180,41,0.08);
-}
-.chase-pill .pill-runs{
+.large-overs{
   font-family: 'Teko', sans-serif;
   font-weight: 600;
-  font-size: clamp(30px,5.5vh,52px);
-  line-height: 1;
-  color: var(--gold);
   font-variant-numeric: tabular-nums;
-}
-.chase-pill .pill-label{
-  font-size: var(--fs-micro);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-  white-space: nowrap;
+  font-size: clamp(34px, 6vh, 62px);
+  line-height: 0.9;
+  color: var(--gold);
 }
 
 /* ---- batsmen / bowler ---- */
@@ -311,6 +291,39 @@ html, body{
   color: var(--ink-dim);
   font-style: italic;
   font-size: var(--fs-small);
+}
+
+/* ---- chase banner ----
+   Full-width strip below batsmen/bowler
+   showing "X runs needed off Y balls". */
+.chase-banner{
+  grid-area: chase;
+  margin: 10px clamp(16px,2.4vw,40px) 0;
+  padding: clamp(10px,1.6vh,16px) clamp(16px,2.4vw,40px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px,2vw,22px);
+  flex-wrap: wrap;
+  border-radius: 10px;
+  border: 1.5px solid var(--gold);
+  background: linear-gradient(90deg, rgba(240,180,41,0.14), rgba(240,180,41,0.04));
+}
+.chase-banner-runs{
+  font-family: 'Teko', sans-serif;
+  font-weight: 600;
+  font-size: clamp(40px, 7vh, 74px);
+  line-height: 1;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+.chase-banner-label{
+  font-size: clamp(14px, 2vh, 20px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
 /* ---- extras ---- */
@@ -403,9 +416,12 @@ html, body{
     "heading"
     "batsmen"
     "bowler"
+    "chase"
     "extras"
     "breakdown"; }
   .innings-heading{ flex-direction: column; gap: 10px; }
+  .score-overs-row{ flex-direction: column; gap: 4px; }
+  .chase-banner{ flex-direction: column; text-align: center; gap: 4px; }
 }
 
 /* =========================================================
