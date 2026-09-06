@@ -11,7 +11,8 @@ import {
 } from "../utils/scoreUtils";
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE_URL || "https://scoreboard-uuvq.onrender.com";
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://scoreboard-uuvq.onrender.com";
 
 function ScoreboardPage() {
   const { matchId } = useParams();
@@ -87,9 +88,8 @@ function ScoreboardPage() {
 
         console.error("Scoreboard error:", err);
 
-        setError(
-          "Live scores are temporarily unavailable"
-        );
+        // Keep previous good score visible if refresh fails.
+        setError("Unable to refresh live score");
       } finally {
         setLoading(false);
       }
@@ -109,8 +109,6 @@ function ScoreboardPage() {
     loadScoreboard(controller.signal);
 
     const interval = setInterval(() => {
-      // Cancel previous request before starting
-      // the next request.
       controller.abort();
 
       controller = new AbortController();
@@ -174,107 +172,129 @@ function ScoreboardPage() {
     getExtras(currentInnings);
 
   // ================================
-  // SECOND INNINGS
+  // SECOND INNINGS CHASE / RESULT
   // ================================
 
-  // ================================
-// SECOND INNINGS CHASE / RESULT
-// ================================
+  const secondInnings = innings[1];
 
-const secondInnings = innings[1];
+  let chaseInfo = null;
+  let matchResult = null;
 
-let chaseInfo = null;
-let matchResult = null;
+  if (innings.length >= 2 && secondInnings) {
+    const firstInnings = innings[0];
 
-if (innings.length >= 2 && secondInnings) {
-  const firstInnings = innings[0];
-  const firstScore = getTeamScore(firstInnings);
-  const secondScore = getTeamScore(secondInnings);
+    const firstScore =
+      getTeamScore(firstInnings);
 
-  const isSecondInnings =
-    currentInnings?.inningsNo === secondInnings?.inningsNo;
+    const secondScore =
+      getTeamScore(secondInnings);
 
-  // ========================================
-  // API CONFIRMS MATCH IS COMPLETED
-  // ========================================
+    const isSecondInnings =
+      currentInnings?.inningsNo ===
+      secondInnings?.inningsNo;
 
-  if (
-    match.matchStatus?.toLowerCase() === "completed" &&
-    match.matchResult
-  ) {
-    matchResult = {
-      winner: null,
-      text: match.matchResult,
-    };
-  }
+    // ========================================
+    // API CONFIRMS MATCH IS COMPLETED
+    // ========================================
 
-  // ========================================
-  // SECOND INNINGS IS STILL LIVE
-  // ========================================
+    if (
+      match.matchStatus?.toLowerCase() ===
+        "completed" &&
+      match.matchResult
+    ) {
+      matchResult = {
+        winner: null,
+        text: match.matchResult,
+      };
+    }
 
-  else if (isSecondInnings) {
-    const target = firstScore.runs + 1;
+    // ========================================
+    // SECOND INNINGS IS STILL LIVE
+    // ========================================
 
-    const runsNeeded = Math.max(
-      target - secondScore.runs,
-      0
-    );
+    else if (isSecondInnings) {
+      const target =
+        firstScore.runs + 1;
 
-    // YOUR CURRENT MATCHES ARE 6 OVERS
-    const TOTAL_OVERS = 6;
-    const TOTAL_MATCH_BALLS = TOTAL_OVERS * 6;
-
-    const ballsBowled = secondScore.balls ?? 0;
-
-    const ballsRemaining = Math.max(
-      TOTAL_MATCH_BALLS - ballsBowled,
-      0
-    );
-
-    // Chasing team reaches target
-    if (secondScore.runs >= target) {
-      const wicketsRemaining = Math.max(
-        10 - secondScore.wickets,
+      const runsNeeded = Math.max(
+        target - secondScore.runs,
         0
       );
 
-      matchResult = {
-        winner: secondInnings.battingTeamName,
-        text: `${secondInnings.battingTeamName.toUpperCase()} WIN BY ${wicketsRemaining} WICKETS`,
-      };
-    }
+      // Current matches are 6 overs
+      const TOTAL_OVERS = 6;
 
-    // 6 overs completed or all wickets lost
-    else if (
-      ballsRemaining === 0 ||
-      secondScore.wickets >= 10
-    ) {
-      const runsWonBy =
-        firstScore.runs - secondScore.runs;
+      const TOTAL_MATCH_BALLS =
+        TOTAL_OVERS * 6;
 
-      if (runsWonBy === 0) {
+      const ballsBowled =
+        secondScore.balls ?? 0;
+
+      const ballsRemaining = Math.max(
+        TOTAL_MATCH_BALLS -
+          ballsBowled,
+        0
+      );
+
+      // ========================================
+      // CHASING TEAM REACHES TARGET
+      // ========================================
+
+      if (secondScore.runs >= target) {
+        const wicketsRemaining =
+          Math.max(
+            10 - secondScore.wickets,
+            0
+          );
+
         matchResult = {
-          winner: null,
-          text: "MATCH TIED",
+          winner:
+            secondInnings.battingTeamName,
+
+          text: `${secondInnings.battingTeamName.toUpperCase()} WIN BY ${wicketsRemaining} WICKETS`,
         };
-      } else {
-        matchResult = {
-          winner: firstInnings.battingTeamName,
-          text: `${firstInnings.battingTeamName.toUpperCase()} WIN BY ${runsWonBy} RUNS`,
+      }
+
+      // ========================================
+      // 6 OVERS COMPLETED OR ALL WICKETS LOST
+      // ========================================
+
+      else if (
+        ballsRemaining === 0 ||
+        secondScore.wickets >= 10
+      ) {
+        const runsWonBy =
+          firstScore.runs -
+          secondScore.runs;
+
+        if (runsWonBy === 0) {
+          matchResult = {
+            winner: null,
+            text: "MATCH TIED",
+          };
+        } else {
+          matchResult = {
+            winner:
+              firstInnings.battingTeamName,
+
+            text: `${firstInnings.battingTeamName.toUpperCase()} WIN BY ${runsWonBy} RUNS`,
+          };
+        }
+      }
+
+      // ========================================
+      // MATCH STILL IN PROGRESS
+      // ========================================
+
+      else {
+        chaseInfo = {
+          runsNeeded,
+          ballsRemaining,
+          target,
         };
       }
     }
-
-    // Match still in progress
-    else {
-      chaseInfo = {
-        runsNeeded,
-        ballsRemaining,
-        target,
-      };
-    }
   }
-}
 
   // ================================
   // RENDER
@@ -299,9 +319,9 @@ if (innings.length >= 2 && secondInnings) {
         {match.matchStatus}
       </div>
 
-      {/* Persistent error strip.
-          Keeps the previous good score visible
-          if a refresh temporarily fails. */}
+      {/* ================================
+          ERROR
+      ================================= */}
 
       {error && (
         <div className="scoreboard-error">
@@ -309,39 +329,11 @@ if (innings.length >= 2 && secondInnings) {
         </div>
       )}
 
-      {/* ================================
-          LIVE TEAM SCORES
-      ================================= */}
-
-      <div className="scoreboard-teams">
-        {innings.map((inning) => {
-          const inningScore =
-            getTeamScore(inning);
-
-          return (
-            <div
-              className="scoreboard-team"
-              key={inning.inningsNo}
-            >
-              <h2>
-                {inning.battingTeamName}
-              </h2>
-
-              <div className="scoreboard-score">
-                {inningScore.runs}/
-                {inningScore.wickets}
-              </div>
-
-              <div className="scoreboard-overs">
-                {inningScore.overs} OV
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ================================
+      {/* =================================
           MAIN LIVE SCORECARD
+
+          The old top two-team score
+          section has been removed.
       ================================= */}
 
       <div className="scoreboard-main">
@@ -371,14 +363,9 @@ if (innings.length >= 2 && secondInnings) {
 
               </div>
 
-              {/* =================================
+              {/* ================================
                   CHASE PILL
-
-                  IMPORTANT:
-                  This ONLY renders when chaseInfo
-                  exists, which only happens during
-                  the SECOND INNINGS.
-              ================================== */}
+              ================================= */}
 
               {chaseInfo && (
                 <div className="chase-pill">
@@ -608,4 +595,3 @@ if (innings.length >= 2 && secondInnings) {
 }
 
 export default ScoreboardPage;
-

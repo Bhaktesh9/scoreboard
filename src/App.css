@@ -117,64 +117,12 @@ html, body{
 }
 
 /* =========================================
-   TEAM STRIP
-   innings.map() renders 1 or 2 team blocks,
-   so this uses auto-fit rather than a fixed
-   column count.
+   TOP TEAM SCORE STRIP REMOVED
+
+   The old .scoreboard-teams section is intentionally
+   removed from ScoreboardPage.jsx. The main innings
+   hero below is now the only large score display.
 ========================================= */
-.scoreboard-teams{
-  flex: 0 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1px;
-  background: var(--hair);
-  border-top: 1px solid var(--hair);
-  border-bottom: 1px solid var(--hair);
-}
-.scoreboard-teams:empty{ display: none; }
-
-.scoreboard-team{
-  background: var(--panel);
-  padding: clamp(10px,1.6vh,18px) clamp(16px,2.4vw,40px);
-  display: flex;
-  align-items: baseline;
-  gap: 14px;
-  border-left: 3px solid transparent;
-}
-
-/* Highlights whichever team is listed last — in practice the
-   currently-batting side. See note below on making this exact. */
-.scoreboard-team:last-child{
-  border-left-color: var(--gold);
-  background: linear-gradient(90deg, rgba(240,180,41,0.06), transparent 60%);
-}
-
-.scoreboard-team h2{
-  margin: 0;
-  flex: 1;
-  font-family: 'Teko', 'Arial Narrow', sans-serif;
-  font-weight: 500;
-  font-size: var(--fs-team);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.scoreboard-score{
-  font-family: 'Teko', sans-serif;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  font-size: clamp(22px, 3.6vh, 40px);
-}
-.scoreboard-team:last-child .scoreboard-score{ color: var(--gold); }
-
-.scoreboard-overs{
-  min-width: 64px;
-  text-align: right;
-  font-size: var(--fs-small);
-  color: var(--ink-dim);
-  font-variant-numeric: tabular-nums;
-  align-self: center;
-}
 
 /* =========================================
    MAIN — the only flexible row.
@@ -256,14 +204,16 @@ html, body{
   font-family: 'Teko', sans-serif;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  font-size: var(--fs-hero);
-  line-height: 0.95;
+  font-size: clamp(78px, 17vh, 155px);
+  line-height: 0.88;
   color: var(--ink);
 }
 .large-overs{
-  font-size: var(--fs-body);
+  font-size: clamp(24px, 3.2vh, 38px);
+  font-weight: 600;
   color: var(--ink-dim);
   font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 
 /* Chase pill — sits beside the hero score rather than in a
@@ -312,8 +262,8 @@ html, body{
 
 .current-batsmen h2,
 .current-bowler h2{
-  margin: 0 0 6px;
-  font-size: var(--fs-micro);
+  margin: 0 0 8px;
+  font-size: clamp(16px, 2vh, 23px);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -322,12 +272,12 @@ html, body{
 
 .score-table-header{
   display: grid;
-  grid-template-columns: 1fr 56px 56px 64px;
+  grid-template-columns: 1fr 68px 68px 78px;
   align-items: center;
   color: var(--ink-dim);
-  font-size: var(--fs-micro);
+  font-size: clamp(13px, 1.6vh, 18px);
   font-weight: 700;
-  padding: 6px 4px;
+  padding: 7px 4px;
   border-bottom: 1px solid var(--hair);
 }
 .score-table-header span:not(:first-child){ text-align: right; }
@@ -335,17 +285,21 @@ html, body{
 .batsman-row,
 .bowler-row{
   display: grid;
-  grid-template-columns: 1fr 56px 56px 64px;
+  grid-template-columns: 1fr 68px 68px 78px;
   align-items: center;
-  padding: clamp(5px,0.9vh,10px) 4px;
+  padding: clamp(7px,1.1vh,13px) 4px;
   border-bottom: 1px solid var(--hair);
-  font-size: var(--fs-body);
+  font-size: clamp(20px, 2.7vh, 30px);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .batsman-row span:not(:first-child),
 .bowler-row span:not(:first-child){ text-align: right; }
 
-.batsman-name{ font-weight: 500; }
+.batsman-name{
+  font-size: clamp(21px, 2.9vh, 32px);
+  font-weight: 600;
+}
 .batsman-name strong{
   color: var(--gold);
   font-weight: 700;
@@ -451,7 +405,6 @@ html, body{
     "bowler"
     "extras"
     "breakdown"; }
-  .scoreboard-teams{ grid-template-columns: 1fr; }
   .innings-heading{ flex-direction: column; gap: 10px; }
 }
 
