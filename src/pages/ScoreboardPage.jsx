@@ -221,11 +221,11 @@ function ScoreboardPage() {
         0
       );
 
-      // Current matches are 6 overs
+      // Current matches are 5 overs
       const TOTAL_OVERS = 5;
 
       const TOTAL_MATCH_BALLS =
-        TOTAL_OVERS * 5;
+        TOTAL_OVERS * 6;
 
       const ballsBowled =
         secondScore.balls ?? 0;
